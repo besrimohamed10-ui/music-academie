@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Music Académie – Exercices</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%233b2f8f'/%3E%3Ctext x='50' y='70' font-size='64' text-anchor='middle'%3E%F0%9F%8E%BC%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tool { max-width: 820px; margin: 0 auto 30px; background: #fff; border-radius: 16px; padding: 26px; box-shadow: 0 4px 16px rgba(0,0,0,.08); text-align: center; }
+    .tool h2 { font-size: 1.5rem; margin-bottom: 8px; }
+    .hint { color: #555; margin-bottom: 18px; }
+    .piano { position: relative; display: inline-flex; height: 190px; direction: ltr; user-select: none; touch-action: manipulation; }
+    .white { width: 54px; height: 190px; background: #fff; border: 1px solid #333; border-radius: 0 0 8px 8px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-size: .8rem; color: #555; cursor: pointer; }
+    .white.on { background: #ffe08a; }
+    .black { position: absolute; width: 34px; height: 115px; background: #1b1f3b; border-radius: 0 0 6px 6px; z-index: 2; cursor: pointer; }
+    .black.on { background: #c2417a; }
+    .notes { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 16px 0; }
+    .notes button, .ctrl button { padding: 10px 18px; border: 0; border-radius: 22px; background: #3b2f8f; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .notes button:hover, .ctrl button:hover { background: #c2417a; }
+    .ctrl { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-top: 14px; }
+    .msg { min-height: 28px; font-weight: 700; margin-top: 10px; }
+    .ok { color: #1b8a3b; } .ko { color: #c0262d; }
+    .beat { width: 22px; height: 22px; border-radius: 50%; background: #ddd; display: inline-block; margin: 0 auto 10px; }
+    .beat.tick { background: #ffb703; }
+    input[type=range] { width: 220px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo">🎼 Music Académie</a>
+    <nav><a href="index.html" data-i18n="back"></a></nav>
+    <div class="lang">
+      <button data-lang="ar">العربية</button>
+      <button data-lang="fr">FR</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="es">ES</button>
+    </div>
+  </header>
+
+  <section class="hero" style="padding:60px 6%">
+    <h1 data-i18n="title"></h1>
+    <p data-i18n="subtitle"></p>
+  </section>
+
+  <section class="section">
+    <div class="tool">
+      <h2 data-i18n="piano_title"></h2>
+      <p class="hint" data-i18n="piano_hint"></p>
+      <div class="piano" id="piano"></div>
+    </div>
+
+    <div class="tool">
+      <h2 data-i18n="ear_title"></h2>
+      <p class="hint" data-i18n="ear_hint"></p>
+      <div class="ctrl"><button id="playNote" data-i18n="play"></button></div>
+      <div class="notes" id="choices"></div>
+      <div class="msg" id="earMsg"></div>
+      <div><strong data-i18n="score"></strong> <span id="score">0 / 0</span></div>
+    </div>
+
+    <div class="tool">
+      <h2 data-i18n="read_title"></h2>
+      <p class="hint" data-i18n="read_hint"></p>
+      <svg id="staffSvg" viewBox="0 0 300 110" width="320" height="118" role="img" aria-label="staff"></svg>
+      <div class="notes" id="readChoices"></div>
+      <div class="msg" id="readMsg"></div>
+      <div><strong data-i18n="score"></strong> <span id="readScore">0 / 0</span></div>
+    </div>
+
+    <div class="tool">
+      <h2 data-i18n="metro_title"></h2>
+      <div class="beat" id="beat"></div>
+      <div class="ctrl">
+        <label><span data-i18n="bpm"></span> <strong id="bpmVal">80</strong></label>
+        <input type="range" id="bpm" min="40" max="200" value="80">
+        <button id="metroBtn" data-i18n="start"></button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">© 2026 Music Académie</footer>
+
+  <script>
+    var T = {
+      fr: { back:"← Retour au site", title:"Exercices interactifs", subtitle:"Entraînez-vous directement dans votre navigateur.",
+        piano_title:"Piano virtuel", piano_hint:"Cliquez sur les touches, ou utilisez le clavier : A S D F G H J (touches blanches) et W E T Y U (touches noires).",
+        ear_title:"Entraînement de l'oreille", ear_hint:"Écoutez la note puis choisissez son nom.",
+        read_title:"Lecture de notes", read_hint:"Clé de sol : quelle est cette note ?",
+        play:"▶ Jouer une note", score:"Score :", good:"Bravo ! ✔", bad:"Raté, c'était : ",
+        metro_title:"Métronome", bpm:"Tempo (BPM) :", start:"Démarrer", stop:"Arrêter",
+        names:["Do","Ré","Mi","Fa","Sol","La","Si"] },
+      en: { back:"← Back to site", title:"Interactive exercises", subtitle:"Practice right in your browser.",
+        piano_title:"Virtual piano", piano_hint:"Click the keys, or use your keyboard: A S D F G H J (white keys) and W E T Y U (black keys).",
+        ear_title:"Ear training", ear_hint:"Listen to the note, then pick its name.",
+        read_title:"Note reading", read_hint:"Treble clef: which note is this?",
+        play:"▶ Play a note", score:"Score:", good:"Well done! ✔", bad:"Missed, it was: ",
+        metro_title:"Metronome", bpm:"Tempo (BPM):", start:"Start", stop:"Stop",
+        names:["C","D","E","F","G","A","B"] },
+      es: { back:"← Volver al sitio", title:"Ejercicios interactivos", subtitle:"Practica directamente en tu navegador.",
+        piano_title:"Piano virtual", piano_hint:"Haz clic en las teclas o usa el teclado: A S D F G H J (teclas blancas) y W E T Y U (teclas negras).",
+        ear_title:"Entrenamiento del oído", ear_hint:"Escucha la nota y elige su nombre.",
+        read_title:"Lectura de notas", read_hint:"Clave de sol: ¿qué nota es esta?",
+        play:"▶ Tocar una nota", score:"Puntuación:", good:"¡Muy bien! ✔", bad:"Fallaste, era: ",
+        metro_title:"Metrónomo", bpm:"Tempo (BPM):", start:"Iniciar", stop:"Detener",
+        names:["Do","Re","Mi","Fa","Sol","La","Si"] },
+      ar: { back:"← العودة إلى الموقع", title:"تمارين تفاعلية", subtitle:"تدرّب مباشرة داخل المتصفح.",
+        piano_title:"بيانو افتراضي", piano_hint:"اضغط على المفاتيح أو استخدم لوحة المفاتيح: A S D F G H J (المفاتيح البيضاء) وW E T Y U (المفاتيح السوداء).",
+        ear_title:"تدريب الأذن", ear_hint:"استمع إلى النوتة ثم اختر اسمها.",
+        read_title:"قراءة النوتات", read_hint:"مفتاح صول: ما هذه النوتة؟",
+        play:"▶ شغّل نوتة", score:"النتيجة:", good:"أحسنت! ✔", bad:"أخطأت، كانت: ",
+        metro_title:"مترونوم", bpm:"السرعة (BPM):", start:"ابدأ", stop:"إيقاف",
+        names:["دو","ري","مي","فا","صول","لا","سي"] }
+    };
+
+    var lang = "fr";
+    try { lang = localStorage.getItem("lang") || "fr"; } catch (e) {}
+    if (!T[lang]) lang = "fr";
+
+    /* ---------- Audio ---------- */
+    var ctx = null;
+    function audio() {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === "suspended") ctx.resume();
+      return ctx;
+    }
+    function tone(freq, dur) {
+      var c = audio(), o = c.createOscillator(), g = c.createGain();
+      o.type = "triangle"; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.5, c.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(); o.stop(c.currentTime + dur + 0.05);
+    }
+
+    /* ---------- Piano ---------- */
+    var WHITE = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+    var WKEYS = ["a","s","d","f","g","h","j","k"];
+    var BLACK = [{f:277.18, pos:0, k:"w"}, {f:311.13, pos:1, k:"e"}, {f:369.99, pos:3, k:"t"}, {f:415.30, pos:4, k:"y"}, {f:466.16, pos:5, k:"u"}];
+    var piano = document.getElementById("piano");
+    var keyEls = {};
+
+    WHITE.forEach(function (f, i) {
+      var d = document.createElement("div");
+      d.className = "white";
+      d.textContent = WKEYS[i].toUpperCase();
+      bind(d, f);
+      piano.appendChild(d);
+      keyEls[WKEYS[i]] = d;
+    });
+    BLACK.forEach(function (b) {
+      var d = document.createElement("div");
+      d.className = "black";
+      d.style.left = (b.pos * 54 + 54 - 17) + "px";
+      bind(d, b.f);
+      piano.appendChild(d);
+      keyEls[b.k] = d;
+    });
+    var freqByKey = {};
+    WKEYS.forEach(function (k, i) { freqByKey[k] = WHITE[i]; });
+    BLACK.forEach(function (b) { freqByKey[b.k] = b.f; });
+
+    function press(el, f) { tone(f, 0.9); el.classList.add("on"); setTimeout(function () { el.classList.remove("on"); }, 180); }
+    function bind(el, f) {
+      el.addEventListener("pointerdown", function (e) { e.preventDefault(); press(el, f); });
+    }
+    document.addEventListener("keydown", function (e) {
+      if (e.repeat) return;
+      var k = e.key.toLowerCase();
+      if (freqByKey[k]) press(keyEls[k], freqByKey[k]);
+    });
+
+    /* ---------- Ear training ---------- */
+    var NOTES7 = WHITE.slice(0, 7);
+    var current = -1, answered = true, good = 0, total = 0;
+    var choices = document.getElementById("choices");
+    var earMsg = document.getElementById("earMsg");
+
+    function buildChoices() {
+      choices.innerHTML = "";
+      T[lang].names.forEach(function (n, i) {
+        var b = document.createElement("button");
+        b.textContent = n;
+        b.addEventListener("click", function () { answer(i); });
+        choices.appendChild(b);
+      });
+    }
+    document.getElementById("playNote").addEventListener("click", function () {
+      if (answered) { current = Math.floor(Math.random() * 7); answered = false; earMsg.textContent = ""; }
+      tone(NOTES7[current], 1.2);
+    });
+    function answer(i) {
+      if (current < 0) return;
+      if (answered) return;
+      answered = true; total++;
+      if (i === current) { good++; earMsg.textContent = T[lang].good; earMsg.className = "msg ok"; }
+      else { earMsg.textContent = T[lang].bad + T[lang].names[current]; earMsg.className = "msg ko"; }
+      document.getElementById("score").textContent = good + " / " + total;
+    }
+
+    /* ---------- Lecture de notes ---------- */
+    var rIdx = 0, rAnswered = false, rGood = 0, rTotal = 0;
+    var staffSvg = document.getElementById("staffSvg");
+    var readChoices = document.getElementById("readChoices");
+    var readMsg = document.getElementById("readMsg");
+
+    function drawNote(idx) {
+      var y = 80 - idx * 5, cx = 150, s = "";
+      for (var i = 0; i < 5; i++) {
+        var ly = 30 + i * 10;
+        s += '<line x1="20" y1="' + ly + '" x2="280" y2="' + ly + '" stroke="currentColor" stroke-width="1.2"/>';
+      }
+      if (idx <= 0) s += '<line x1="132" y1="80" x2="168" y2="80" stroke="currentColor" stroke-width="1.2"/>';
+      if (idx >= 12) s += '<line x1="132" y1="20" x2="168" y2="20" stroke="currentColor" stroke-width="1.2"/>';
+      s += '<ellipse cx="' + cx + '" cy="' + y + '" rx="7.5" ry="5.2" fill="currentColor" transform="rotate(-15 ' + cx + ' ' + y + ')"/>';
+      if (idx < 6) s += '<line x1="' + (cx + 7) + '" y1="' + y + '" x2="' + (cx + 7) + '" y2="' + (y - 30) + '" stroke="currentColor" stroke-width="1.5"/>';
+      else s += '<line x1="' + (cx - 7) + '" y1="' + y + '" x2="' + (cx - 7) + '" y2="' + (y + 30) + '" stroke="currentColor" stroke-width="1.5"/>';
+      staffSvg.innerHTML = s;
+    }
+    function newReadNote() {
+      rIdx = Math.floor(Math.random() * 13);
+      rAnswered = false;
+      readMsg.textContent = "";
+      drawNote(rIdx);
+    }
+    function buildReadChoices() {
+      readChoices.innerHTML = "";
+      T[lang].names.forEach(function (n, i) {
+        var b = document.createElement("button");
+        b.textContent = n;
+        b.addEventListener("click", function () { answerRead(i); });
+        readChoices.appendChild(b);
+      });
+    }
+    function answerRead(i) {
+      if (rAnswered) return;
+      rAnswered = true; rTotal++;
+      var right = rIdx % 7;
+      if (i === right) { rGood++; readMsg.textContent = T[lang].good; readMsg.className = "msg ok"; }
+      else { readMsg.textContent = T[lang].bad + T[lang].names[right]; readMsg.className = "msg ko"; }
+      document.getElementById("readScore").textContent = rGood + " / " + rTotal;
+      setTimeout(newReadNote, 1300);
+    }
+
+    /* ---------- Metronome ---------- */
+    var running = false, timer = null, beatEl = document.getElementById("beat");
+    var bpm = document.getElementById("bpm"), bpmVal = document.getElementById("bpmVal"), mBtn = document.getElementById("metroBtn");
+    var n = 0;
+    function tick() {
+      tone(n % 4 === 0 ? 1000 : 700, 0.08);
+      beatEl.classList.add("tick"); setTimeout(function () { beatEl.classList.remove("tick"); }, 100);
+      n++;
+      timer = setTimeout(tick, 60000 / Number(bpm.value));
+    }
+    mBtn.addEventListener("click", function () {
+      running = !running;
+      if (running) { n = 0; tick(); } else { clearTimeout(timer); }
+      mBtn.textContent = running ? T[lang].stop : T[lang].start;
+    });
+    bpm.addEventListener("input", function () { bpmVal.textContent = bpm.value; });
+
+    /* ---------- Langue ---------- */
+    function setLang(l) {
+      lang = l;
+      var d = T[l];
+      document.documentElement.lang = l;
+      document.documentElement.dir = (l === "ar") ? "rtl" : "ltr";
+      document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = d[el.getAttribute("data-i18n")]; });
+      document.querySelectorAll(".lang button").forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-lang") === l); });
+      mBtn.textContent = running ? d.stop : d.start;
+      earMsg.textContent = "";
+      buildChoices();
+      buildReadChoices();
+      try { localStorage.setItem("lang", l); } catch (e) {}
+    }
+    document.querySelectorAll(".lang button").forEach(function (b) {
+      b.addEventListener("click", function () { setLang(b.getAttribute("data-lang")); });
+    });
+    setLang(lang);
+    newReadNote();
+  </script>
+</body>
+</html>
