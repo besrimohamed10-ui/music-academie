@@ -1,0 +1,37 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2430; line-height: 1.6; background: #fff; }
+a { text-decoration: none; color: inherit; }
+
+.header { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 14px 6%; background: #1b1f3b; color: #fff; }
+.logo { font-weight: 700; font-size: 1.2rem; }
+.header nav a { margin-left: 18px; opacity: .85; }
+.header nav a:hover { opacity: 1; }
+
+.hero { text-align: center; padding: 100px 6%; color: #fff; background: linear-gradient(135deg, #3b2f8f, #c2417a); }
+.hero h1 { font-size: clamp(1.8rem, 5vw, 3rem); margin-bottom: 16px; }
+.hero p { max-width: 640px; margin: 0 auto 28px; font-size: 1.1rem; }
+
+.btn { display: inline-block; padding: 12px 28px; border: 0; border-radius: 30px; background: #ffb703; color: #1b1f3b; font-weight: 700; font-size: 1rem; cursor: pointer; }
+.btn:hover { background: #ffc933; }
+
+.section { padding: 70px 6%; }
+.section.alt { background: #f4f2fb; }
+.section h2 { text-align: center; font-size: 2rem; margin-bottom: 36px; }
+.center { text-align: center; margin-bottom: 24px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 22px; max-width: 1000px; margin: 0 auto; }
+.card { background: #fff; padding: 26px; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,.08); text-align: center; }
+.card span { font-size: 2.4rem; }
+.card h3 { margin: 10px 0 6px; }
+.price .amount { font-size: 1.6rem; font-weight: 700; color: #3b2f8f; margin: 8px 0; }
+.featured { border: 2px solid #c2417a; }
+
+.form { max-width: 520px; margin: 0 auto; display: grid; gap: 14px; }
+.form input, .form textarea { padding: 12px 14px; border: 1px solid #ccc; border-radius: 10px; font: inherit; }
+
+.footer { text-align: center; padding: 24px; background: #1b1f3b; color: #cfd2e6; }
+
+@media (max-width: 600px) {
+  .header { flex-direction: column; gap: 8px; }
+  .header nav a { margin: 0 9px; }
+}
